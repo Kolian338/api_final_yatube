@@ -23,7 +23,6 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = ('user', 'following')
-        read_only_fields = ('user',)
         validators = [
             UniqueTogetherValidator(
                 queryset=Follow.objects.all(),
