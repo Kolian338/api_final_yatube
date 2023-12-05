@@ -1,13 +1,13 @@
-from rest_framework import filters, mixins, viewsets
+from rest_framework import filters, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
+from api.mixins import CreateListViewSet
 from api.permissions import OnlyAuthorDeleteUpdateOrReadOnly
 from api.serializers import (CommentSerializer, FollowSerializer,
                              GroupSerializer, PostSerializer)
-from api.mixins import CreateListViewSet
-from posts.models import Comment, Follow, Group, Post, User
+from posts.models import Group, Post
 
 
 def get_post(pk):
