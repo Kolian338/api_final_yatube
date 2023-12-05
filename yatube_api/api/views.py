@@ -6,16 +6,12 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from api.permissions import OnlyAuthorDeleteUpdateOrReadOnly
 from api.serializers import (CommentSerializer, FollowSerializer,
                              GroupSerializer, PostSerializer)
+from api.mixins import CreateListViewSet
 from posts.models import Comment, Follow, Group, Post, User
 
 
-class CreateListViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                        viewsets.GenericViewSet):
-    """
-    Кастомный вьюсет для чтения списка или создания объекта.
-    """
-
-    pass
+def get_post(pk):
+    return get_object_or_404(Post, pk=pk)
 
 
 class FollowListCreateViewSet(CreateListViewSet):
@@ -24,13 +20,7 @@ class FollowListCreateViewSet(CreateListViewSet):
     search_fields = ('following__username',)
 
     def get_queryset(self):
-        user = get_object_or_404(
-            User,
-            pk=self.request.user.id
-        )
-        return Follow.objects.filter(
-            user=user
-        ).all()
+        return self.request.user.follower.all()
 
     def perform_create(self, serializer):
         """
@@ -44,17 +34,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (OnlyAuthorDeleteUpdateOrReadOnly,)
 
     def get_queryset(self):
-        return Comment.objects.filter(
-            post_id=self.kwargs.get('post_id')
-        ).all()
+        return get_post(self.kwargs.get('post_id')).comments.all()
 
     def perform_create(self, serializer):
         """
         Дополнительное добавление поля при сохранении в БД.
         """
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
         serializer.save(
-            post=post,
+            post=get_post(self.kwargs.get('post_id')),
             author=self.request.user
         )
 
