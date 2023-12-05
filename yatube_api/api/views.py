@@ -10,10 +10,6 @@ from api.serializers import (CommentSerializer, FollowSerializer,
 from posts.models import Group, Post
 
 
-def get_post(pk):
-    return get_object_or_404(Post, pk=pk)
-
-
 class FollowListCreateViewSet(CreateListViewSet):
     serializer_class = FollowSerializer
     filter_backends = (filters.SearchFilter,)
@@ -34,16 +30,19 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (OnlyAuthorDeleteUpdateOrReadOnly,)
 
     def get_queryset(self):
-        return get_post(self.kwargs.get('post_id')).comments.all()
+        return self.get_post().comments.all()
 
     def perform_create(self, serializer):
         """
         Дополнительное добавление поля при сохранении в БД.
         """
         serializer.save(
-            post=get_post(self.kwargs.get('post_id')),
+            post=self.get_post(),
             author=self.request.user
         )
+
+    def get_post(self):
+        return get_object_or_404(Post, pk=self.kwargs.get('post_id'))
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
